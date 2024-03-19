@@ -83,17 +83,17 @@ class FullLoss(StandardDiffusionLoss):
 
         # additional loss
         if self.lambda_local_loss is not None:
-            local_loss = self.get_local_loss(attn_map_cache, batch).mean()
+            local_loss = self.get_local_loss(attn_map_cache, batch, w).mean()
             loss += self.lambda_local_loss * local_loss
             loss_dict["loss/local_loss"] = local_loss
 
         if self.lambda_style_loss is not None:
-            style_loss = self.get_style_loss(model_output_decoded, batch).mean()
+            style_loss = self.get_style_loss(model_output_decoded, batch, w).mean()
             loss += self.lambda_style_loss * style_loss
             loss_dict["loss/style_loss"] = style_loss
         
         if self.lambda_ocr_loss is not None:
-            ocr_loss = self.get_ocr_loss(model_output_decoded, batch).mean()
+            ocr_loss = self.get_ocr_loss(model_output_decoded, batch, w).mean()
             loss += self.lambda_ocr_loss * ocr_loss
             loss_dict["loss/ocr_loss"] = ocr_loss
 
@@ -134,7 +134,7 @@ class FullLoss(StandardDiffusionLoss):
 
         return warped_patches
     
-    def get_style_loss(self, model_output_decoded, batch):
+    def get_style_loss(self, model_output_decoded, batch, w):
 
         tran_mxs = batch["tran_mxs"] # (b, l, 2, 3)
         s_tgt = batch["s_tgt"] # (b, l, 3, s, s)
@@ -154,10 +154,11 @@ class FullLoss(StandardDiffusionLoss):
         lpips_loss = (lpips_loss * seg_mask).sum(dim=-1) / seg_mask.sum(dim=-1) # (b,)
 
         style_loss = l1_loss + lpips_loss
+        style_loss = style_loss * w.reshape(style_loss.shape)
 
         return style_loss
     
-    def get_ocr_loss(self, model_output_decoded, batch):
+    def get_ocr_loss(self, model_output_decoded, batch, w):
 
         r_bbox = batch["r_bbox"]
         label = batch["label"]
@@ -167,11 +168,12 @@ class FullLoss(StandardDiffusionLoss):
             m_top, m_bottom, m_left, m_right = bbox
             model_output_crops.append(model_output_decoded[i, :, m_top:m_bottom, m_left:m_right])
 
-        loss = self.predictor.calc_loss(model_output_crops, label)
+        ocr_loss = self.predictor.calc_loss(model_output_crops, label)
+        ocr_loss = ocr_loss * w.reshape(ocr_loss.shape)
 
-        return loss
+        return ocr_loss
 
-    def get_local_loss(self, attn_map_cache, batch, eps=1.0e-6):
+    def get_local_loss(self, attn_map_cache, batch, w, eps=1.0e-6):
 
         seg_map = batch["seg_map"]
         seg_mask = batch["seg_mask"]
@@ -208,7 +210,8 @@ class FullLoss(StandardDiffusionLoss):
             f_loss = n_loss - p_loss # (b,)
             losses.append(f_loss)
 
-        loss = sum(losses)/len(losses)
+        local_loss = sum(losses)/len(losses)
+        local_loss = local_loss * w.reshape(local_loss.shape)
 
-        return loss
+        return local_loss
     
