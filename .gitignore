@@ -1,0 +1,10 @@
+**/__pycache__
+*.png
+*.sh
+.vscode
+checkpoints
+logs
+outputs
+preoutputs
+src
+temp

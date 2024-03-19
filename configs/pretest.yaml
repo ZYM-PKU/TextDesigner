@@ -1,0 +1,39 @@
+datype: val
+
+# path
+dataset_cfg_path: ./configs/dataset/ctw_g.yaml
+output_dir: ./preoutputs
+
+model:
+  target: sgm.modules.encoders.fsf_model.FSFModel
+  params:
+    ckpt_path: ./checkpoints/encoders/FSF/epoch=39-step=229120.ckpt
+
+    emb_dim: 256
+    n_ref_style: 12
+    n_trans_layers: 12
+    ca_n_heads: 8
+    ca_dim_head: 64
+    c_encoder_params:
+      ch: 64
+      ch_mult: [1, 2, 4]
+      num_res_blocks: 4
+      resolution: 64
+      attn_resolutions: [32]
+    s_encoder_params:
+      ch: 32
+      ch_mult: [1, 2, 4, 8]
+      num_res_blocks: 2
+      resolution: 64
+    decoder_params:
+      ch: 64
+      ch_mult: [1, 2, 4]
+      num_res_blocks: 4
+      resolution: 64
+      attn_resolutions: [32]
+
+# runtime
+batch_size: 4
+shuffle: True
+gpu: 2
+max_iter: 100

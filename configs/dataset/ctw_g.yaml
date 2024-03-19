@@ -1,0 +1,14 @@
+target: CTWGlyphDataset
+params:
+
+  editing: False
+  data_root: /data/zhaoym/UDiffText/CTW
+  font_path: ./dataset/utils/fonts/NotoSansSC-Regular.ttf
+
+  min_seg_ratio: 0.00024
+  max_seg_aspect: 2.5
+  ref_size: 64
+  seq_len: 12
+  
+  refresh: False
+  freq: 10

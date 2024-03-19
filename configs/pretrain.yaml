@@ -1,0 +1,56 @@
+datype: train
+
+# path
+ckpt_dir: ./checkpoints/encoders/FSF
+dataset_cfg_path: ./configs/dataset/ctw_g.yaml
+
+model:
+  target: sgm.modules.encoders.fsf_model.FSFModel
+  params:
+    pretraining: True
+    lr: 1.0e-5
+    gd_w: 2.0e-3
+    w_clip: 0.01
+
+    emb_dim: 256
+    n_ref_style: 12
+    n_trans_layers: 12
+    ca_n_heads: 8
+    ca_dim_head: 64
+    c_encoder_params:
+      ch: 64
+      ch_mult: [1, 2, 4]
+      num_res_blocks: 4
+      resolution: 64
+      attn_resolutions: [32]
+    s_encoder_params:
+      ch: 32
+      ch_mult: [1, 2, 4, 8]
+      num_res_blocks: 2
+      resolution: 64
+    decoder_params:
+      ch: 64
+      ch_mult: [1, 2, 4]
+      num_res_blocks: 4
+      resolution: 64
+      attn_resolutions: [32]
+    disc_params:
+      ch: 32
+      ch_mult: [1, 2, 4, 8]
+      num_res_blocks: 2
+      resolution: 64
+      z_channels: 512
+
+
+# runtime
+batch_size: 64
+shuffle: True
+check_freq: 1
+
+lightning:
+  max_epochs: 100
+  accelerator: gpu
+  strategy: ddp_find_unused_parameters_true
+  devices: [4, 5]
+  default_root_dir: "./logs/pre_logs"
+  profiler: simple 
