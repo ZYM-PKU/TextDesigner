@@ -1,9 +1,7 @@
-from typing import List, Optional, Union
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from omegaconf import ListConfig
+
 from torchvision.utils import save_image
 from torchvision.transforms import GaussianBlur
 from ...util import append_dims, instantiate_from_config
@@ -54,22 +52,16 @@ class FullLoss(StandardDiffusionLoss):
         min_attn_size=16,
         lambda_local_loss=None,
         lambda_style_loss=None,
-        lambda_ocr_loss=None,
-        predictor_config=None,
         *args, **kwarg
     ):
         super().__init__(*args, **kwarg)
 
         self.min_attn_size = min_attn_size
         self.lambda_local_loss = lambda_local_loss
-        self.lambda_ocr_loss = lambda_ocr_loss
         self.lambda_style_loss = lambda_style_loss
 
         self.lpips_loss = LPIPS(net="vgg", eval_mode=False)
         self.gaussian_blur = GaussianBlur(kernel_size=g_kernel_size, sigma=g_sigma)
-
-        if lambda_ocr_loss is not None:
-            self.predictor = instantiate_from_config(predictor_config)
 
     def __call__(self, input, model_output, w, batch, model_output_decoded, attn_map_cache):
 
@@ -91,11 +83,6 @@ class FullLoss(StandardDiffusionLoss):
             style_loss = self.get_style_loss(model_output_decoded, batch, w).mean()
             loss += self.lambda_style_loss * style_loss
             loss_dict["loss/style_loss"] = style_loss
-        
-        if self.lambda_ocr_loss is not None:
-            ocr_loss = self.get_ocr_loss(model_output_decoded, batch, w).mean()
-            loss += self.lambda_ocr_loss * ocr_loss
-            loss_dict["loss/ocr_loss"] = ocr_loss
 
         loss_dict["loss/full_loss"] = loss
 
@@ -157,21 +144,6 @@ class FullLoss(StandardDiffusionLoss):
         style_loss = style_loss * w.reshape(style_loss.shape)
 
         return style_loss
-    
-    def get_ocr_loss(self, model_output_decoded, batch, w):
-
-        r_bbox = batch["r_bbox"]
-        label = batch["label"]
-
-        model_output_crops = []
-        for i, bbox in enumerate(r_bbox):
-            m_top, m_bottom, m_left, m_right = bbox
-            model_output_crops.append(model_output_decoded[i, :, m_top:m_bottom, m_left:m_right])
-
-        ocr_loss = self.predictor.calc_loss(model_output_crops, label)
-        ocr_loss = ocr_loss * w.reshape(ocr_loss.shape)
-
-        return ocr_loss
 
     def get_local_loss(self, attn_map_cache, batch, w, eps=1.0e-6):
 
