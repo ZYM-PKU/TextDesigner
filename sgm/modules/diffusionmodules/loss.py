@@ -56,12 +56,14 @@ class FullLoss(StandardDiffusionLoss):
     ):
         super().__init__(*args, **kwarg)
 
-        self.min_attn_size = min_attn_size
         self.lambda_local_loss = lambda_local_loss
         self.lambda_style_loss = lambda_style_loss
 
-        self.lpips_loss = LPIPS(net="vgg", eval_mode=False)
-        self.gaussian_blur = GaussianBlur(kernel_size=g_kernel_size, sigma=g_sigma)
+        if self.lambda_local_loss is not None:
+            self.min_attn_size = min_attn_size
+            self.gaussian_blur = GaussianBlur(kernel_size=g_kernel_size, sigma=g_sigma)
+        if self.lambda_style_loss is not None:
+            self.lpips_loss = LPIPS(net="vgg", eval_mode=False)
 
     def __call__(self, input, model_output, w, batch, model_output_decoded, attn_map_cache):
 

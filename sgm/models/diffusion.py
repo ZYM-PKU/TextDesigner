@@ -149,7 +149,7 @@ class DiffusionEngine(pl.LightningModule):
         w = append_dims(self.denoiser.w(sigmas), x.ndim)
 
         model_output_decoded = None
-        if self.loss_fn.lambda_ocr_loss is not None or self.loss_fn.lambda_style_loss is not None:
+        if self.loss_fn.lambda_style_loss is not None:
             model_output_decoded = self.decode_first_stage(model_output, use_grad=True)
 
         loss, loss_dict = self.loss_fn(x, model_output, w, batch, model_output_decoded,\

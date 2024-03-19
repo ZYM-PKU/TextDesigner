@@ -76,7 +76,10 @@ model:
           - is_trainable: False
             input_keys: [seg_map]
             emb_key: mask
-            target: sgm.modules.encoders.modules.IdentityEncoder
+            target: sgm.modules.encoders.modules.SpatialRescaler
+            params:
+              multiplier: 0.125
+              method: nearest
           # concat cond
           - is_trainable: False
             input_keys: [mask]
@@ -116,7 +119,4 @@ model:
     loss_fn_config:
       target: sgm.modules.diffusionmodules.loss.FullLoss # StandardDiffusionLoss
       params:
-        g_kernel_size: 3
-        g_sigma: 1.0
-        min_attn_size: 16
         lambda_style_loss: 0.1

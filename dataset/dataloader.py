@@ -239,7 +239,6 @@ class ImageDataset(data.Dataset):
         masked = image * (1 - mask)
 
         seg_map = torch.from_numpy(seg_map)
-        seg_map = F.interpolate(seg_map[:,None,...], scale_factor=0.125).squeeze(1)
         ctrl = torch.from_numpy(ctrl).to(dtype=torch.float32) / 127.5 - 1.0
         c_ref = torch.from_numpy(c_ref).to(dtype=torch.float32) / 127.5 - 1.0
         s_ref = torch.from_numpy(s_ref.transpose(0,3,1,2)).to(dtype=torch.float32) / 127.5 - 1.0
