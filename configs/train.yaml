@@ -1,0 +1,23 @@
+datype: train
+
+# path
+load_ckpt_path: ./checkpoints/pretrained/512-inpainting-ema-ctrl.ckpt # pretrained/512-inpainting-ema-ctrl.ckpt
+save_ckpt_dir: ./checkpoints
+model_cfg_path: ./configs/model/textdesign_sd_2_ctrl_hfh_fsf2.yaml
+dataset_cfg_path: ./configs/dataset/ctw.yaml
+
+# param
+save_ckpt_freq: 1
+batch_size: 2
+base_learning_rate: 1.0e-5
+shuffle: True
+
+# runtime
+lightning:
+  max_epochs: 100
+  accelerator: gpu
+  strategy: ddp_find_unused_parameters_true
+  accumulate_grad_batches: 16
+  devices: [3,4,5]
+  default_root_dir: ./logs/base_logs
+  profiler: simple 

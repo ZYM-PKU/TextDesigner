@@ -1,0 +1,63 @@
+datype: val
+
+# path
+load_ckpt_path: ./checkpoints/epoch=4-step=8670.ckpt  # 512-inpainting-ema-simp v2-1_512-ema-pruned-simp
+model_cfg_path: ./configs/model/textdesign_sd_2_ctrl_hfh_fsf2.yaml  # sd_2_inpainting.yaml textdesign_sd_2.yaml
+dataset_cfg_path: ./configs/dataset/ctw.yaml
+output_dir: ./outputs
+
+# param
+H: 512
+W: 512
+channel: 4 # AE latent channel
+factor: 8 # AE downsample factor
+noise_iters: 0
+aae_enabled: False
+detailed: True
+
+# runtime
+init_step: 0
+batch_size: 1
+num_workers: 0
+gpu: 7
+max_iter: 100
+shuffle: True
+quan_test: False
+
+sampler_cfg:
+  target: sgm.modules.diffusionmodules.sampling.DDIMSampler
+  params: 
+    num_steps: 50
+    discretization_config:
+      target: sgm.modules.diffusionmodules.discretizer.LegacyDDPMDiscretization
+    guider_config:
+      target: sgm.modules.diffusionmodules.guiders.VanillaCFG
+      params:
+        scale: 5.0
+    verbose: True
+
+  # target: sgm.modules.diffusionmodules.sampling.EulerEDMSampler
+  # params:
+  #   num_steps: 50
+  #   discretization_config:
+  #     target: sgm.modules.diffusionmodules.discretizer.LegacyDDPMDiscretization
+  #   guider_config:
+  #     target: sgm.modules.diffusionmodules.guiders.VanillaCFG
+  #     params:
+  #       scale: 5
+  #   s_tmax: 999.0
+  #   verbose: True
+
+# inv_sampler_cfg:
+#   target: sgm.modules.diffusionmodules.sampling.DDIMInvSampler
+#   params: 
+#     num_steps: 50
+#     discretization_config:
+#       target: sgm.modules.diffusionmodules.discretizer.LegacyDDPMDiscretization
+#     guider_config:
+#       target: sgm.modules.diffusionmodules.guiders.VanillaCFG
+#       params:
+#         scale: 2
+
+# ocr
+ocr_enabled: False

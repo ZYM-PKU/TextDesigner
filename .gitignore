@@ -1,0 +1,14 @@
+**/__pycache__
+dataset/utils/fonts/free-font
+dataset/utils/fonts/google-font
+*.png
+*.sh
+.vscode
+checkpoints
+logs
+outputs*
+preoutputs
+sample
+src
+temp
+*.ckpt

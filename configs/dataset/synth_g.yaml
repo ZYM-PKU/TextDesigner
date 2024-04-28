@@ -1,0 +1,10 @@
+target: SynthGlyphDataset
+params:
+
+  std_font_path: ./dataset/utils/fonts/NotoSansSC-Regular.ttf
+  font_root: ../../data/all_fonts
+
+  ref_size: 128
+  n_ref_style: 12
+
+  length: 100000

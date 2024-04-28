@@ -1,0 +1,17 @@
+target: CTWDataset
+params:
+
+  editing: False
+  data_root: /data/zhaoym/UDiffText/CTW
+  std_font_path: ./dataset/utils/fonts/google-font/NotoSansSC-Regular.ttf
+
+  H: 512
+  W: 512
+  min_seg_ratio: 0.00024
+  max_seg_aspect: 2.5
+  std_mask_ratio: 0.1
+  ref_size: 64
+  repeat: 4
+  seq_len: 24
+  
+  refresh: true

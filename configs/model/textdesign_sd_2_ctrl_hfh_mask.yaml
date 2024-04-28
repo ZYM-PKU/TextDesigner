@@ -1,0 +1,121 @@
+model:
+  target: sgm.models.diffusion.DiffusionEngine
+  params:
+    input_key: image
+    opt_keys:
+      - t_attn
+      - t_norm
+      - ctrl_model
+    scale_factor: 0.18215
+    disable_first_stage_autocast: True
+
+    denoiser_config:
+      target: sgm.modules.diffusionmodules.denoiser.DiscreteDenoiser
+      params:
+        num_idx: 1000
+
+        weighting_config:
+          target: sgm.modules.diffusionmodules.denoiser_weighting.EpsWeighting
+        scaling_config:
+          target: sgm.modules.diffusionmodules.denoiser_scaling.EpsScaling
+        discretization_config:
+          target: sgm.modules.diffusionmodules.discretizer.LegacyDDPMDiscretization
+
+    network_config:
+      target: sgm.modules.diffusionmodules.openaimodel.ControlledUNetModel
+      params:
+        in_channels: 9
+        out_channels: 4
+        ctrl_channels: 1
+        model_channels: 320
+        attention_resolutions: [4, 2, 1]
+        save_attn_type: [t_attn]
+        save_attn_layers: [output_blocks.6.1]
+        num_res_blocks: 2
+        channel_mult: [1, 2, 4, 4]
+        num_head_channels: 64
+        use_linear_in_transformer: True
+        transformer_depth: 1
+        t_context_dim: 8192
+
+    conditioner_config:
+      target: sgm.modules.GeneralConditioner
+      params:
+        ucg_keys: [c_ref, s_ref]
+        emb_models:
+          # textual crossattn cond
+          - is_trainable: True
+            ucg_rate: 0.05
+            input_keys: [c_ref, s_ref]
+            emb_key: t_crossattn
+            target: sgm.modules.encoders.modules.FSFReferenceEmbedder
+            params:
+              ckpt_path: ./checkpoints/encoders/FSF/model_rgb.pth
+              n_ref_content: 1
+              n_ref_style: 6
+              in_channel: 3
+              num_res_font: 2
+              num_res_char: 4
+              ch_mult_font: [1, 2, 2, 4]
+              ch_mult_char: [1, 2]
+              ### encoder kwargs ###
+              z_channels: 128
+              double_z: False
+              resolution: 64
+              out_ch: 3
+              ch: 32
+              attn_resolutions: []
+              dropout: 0.0
+          # ctrl cond
+          - is_trainable: False
+            input_keys: [ctrl]
+            emb_key: ctrl
+            target: sgm.modules.encoders.modules.IdentityEncoder
+          # mask cond
+          - is_trainable: False
+            input_keys: [seg_map]
+            emb_key: mask
+            target: sgm.modules.encoders.modules.SpatialRescaler
+            params:
+              multiplier: 0.125
+              method: nearest
+          # concat cond
+          - is_trainable: False
+            input_keys: [mask]
+            emb_key: concat
+            target: sgm.modules.encoders.modules.SpatialRescaler
+            params:
+              multiplier: 0.125
+          - is_trainable: False
+            input_keys: [masked]
+            emb_key: concat
+            target: sgm.modules.encoders.modules.LatentEncoder
+            init_model: True
+            params:
+              scale_factor: 0.18215
+
+    first_stage_config:
+      target: sgm.models.autoencoder.AutoencoderKLInferenceWrapper
+      params:
+        ckpt_path: ./checkpoints/vaes/vae_inpainting_2.safetensors
+        embed_dim: 4
+        monitor: val/rec_loss
+        ddconfig:
+          attn_type: vanilla-xformers
+          double_z: true
+          z_channels: 4
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult: [1, 2, 4, 4]
+          num_res_blocks: 2
+          attn_resolutions: []
+          dropout: 0.0
+        lossconfig:
+          target: torch.nn.Identity
+
+    loss_fn_config:
+      target: sgm.modules.diffusionmodules.loss.FullLoss # StandardDiffusionLoss
+      params:
+        lambda_style_loss: 0.1

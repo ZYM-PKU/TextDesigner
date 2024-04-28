@@ -1,0 +1,58 @@
+datype: train
+
+# path
+ckpt_dir: ./
+dataset_cfg_path: ./configs/dataset/synth_g.yaml
+
+model:
+  target: sgm.modules.encoders.fsf_model.FSFModel
+  params:
+    pretraining: True
+    ckpt_path: ./128-epoch=99-step=500000.ckpt
+    lr: 2.0e-5
+    gd_w: 2.0e-1
+    lpips_w: 0.1
+
+    emb_dim: 256
+    n_ref_style: 12
+    n_trans_layers: 12
+    ca_n_heads: 8
+    ca_dim_head: 64
+    c_encoder_params:
+      ch: 64
+      ch_mult: [1, 2, 4, 8]
+      num_res_blocks: 4
+      resolution: 128
+      attn_resolutions: [32]
+    s_encoder_params:
+      ch: 64
+      ch_mult: [1, 2, 4, 8]
+      num_res_blocks: 4
+      resolution: 128
+    decoder_params:
+      ch: 64
+      ch_mult: [1, 2, 4, 8]
+      num_res_blocks: 4
+      resolution: 128
+      attn_resolutions: [32]
+    disc_params:
+      ch: 32
+      ch_mult: [1, 2, 4, 8]
+      num_res_blocks: 2
+      resolution: 128
+      z_channels: 512
+
+
+# runtime
+batch_size: 5
+shuffle: True
+check_freq: 10
+num_workers: 4
+
+lightning:
+  max_epochs: 200
+  accelerator: gpu
+  strategy: ddp_find_unused_parameters_true
+  devices: [0,1,2,3,4,5,6,7]
+  default_root_dir: "./logs/pre_logs"
+  profiler: simple 
