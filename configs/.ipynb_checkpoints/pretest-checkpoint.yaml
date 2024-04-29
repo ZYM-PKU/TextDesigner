@@ -7,7 +7,7 @@ output_dir: ./preoutputs
 model:
   target: sgm.modules.encoders.fsf_model.FSFModel
   params:
-    ckpt_path: ./epoch=59-step=300000.ckpt
+    ckpt_path: ./128-4-v2-epoch=99-step=500000.ckpt
 
     emb_dim: 256
     n_ref_style: 12
@@ -17,18 +17,18 @@ model:
     c_encoder_params:
       ch: 64
       ch_mult: [1, 2, 4, 8]
-      num_res_blocks: 5
+      num_res_blocks: 4
       resolution: 128
       attn_resolutions: [32]
     s_encoder_params:
       ch: 64
       ch_mult: [1, 2, 4, 8]
-      num_res_blocks: 5
+      num_res_blocks: 4
       resolution: 128
     decoder_params:
       ch: 64
       ch_mult: [1, 2, 4, 8]
-      num_res_blocks: 5
+      num_res_blocks: 4
       resolution: 128
       attn_resolutions: [32]
 
